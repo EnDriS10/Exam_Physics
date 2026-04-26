@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Fuerza Centrípeta 3D</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #ffffff; }
+  </style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+
+<script>
+// Escena
+const scene = new THREE.Scene();
+
+// Cámara
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(5, 4, 6);
+camera.lookAt(0,0,0);
+
+// Render
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Luz
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(5,10,5);
+scene.add(light);
+
+// Base giratoria
+const base = new THREE.Mesh(
+  new THREE.CylinderGeometry(2,2,0.2,50),
+  new THREE.MeshStandardMaterial({color:0xcccccc})
+);
+scene.add(base);
+
+// Eje
+const eje = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.05,0.05,2),
+  new THREE.MeshStandardMaterial({color:0x333333})
+);
+eje.position.y = 1;
+scene.add(eje);
+
+// Masa M (la que gira)
+const masaM = new THREE.Mesh(
+  new THREE.SphereGeometry(0.2,32,32),
+  new THREE.MeshStandardMaterial({color:0x0077ff})
+);
+scene.add(masaM);
+
+// Polea (simplificada)
+const polea = new THREE.Mesh(
+  new THREE.TorusGeometry(0.15, 0.05, 16, 100),
+  new THREE.MeshStandardMaterial({color:0x000000})
+);
+polea.position.set(2, 0.3, 0);
+scene.add(polea);
+
+// Masa colgante m
+const masa_m = new THREE.Mesh(
+  new THREE.BoxGeometry(0.3,0.3,0.3),
+  new THREE.MeshStandardMaterial({color:0xff0000})
+);
+scene.add(masa_m);
+
+// Hilo
+const materialHilo = new THREE.LineBasicMaterial({color: 0x000000});
+
+// Variables físicas
+let omega = 0.5; // velocidad angular
+let r = 1;       // radio inicial
+
+function crearHilo(p1, p2) {
+  const geometry = new THREE.BufferGeometry().setFromPoints([p1,p2]);
+  return new THREE.Line(geometry, materialHilo);
+}
+
+let hilo1, hilo2;
+
+// Animación
+function animate() {
+  requestAnimationFrame(animate);
+
+  // Aumentar velocidad poco a poco
+  omega += 0.001;
+
+  // Simulación simple: el radio crece con ω
+  r = 0.5 + 1.2 * (1 - Math.exp(-omega));
+
+  // Posición de M
+  const x = r * Math.cos(omega * 2);
+  const z = r * Math.sin(omega * 2);
+
+  masaM.position.set(x, 0.2, z);
+
+  // Masa colgante
+  masa_m.position.set(2, -1.2, 0);
+
+  // Eliminar hilos anteriores
+  if(hilo1) scene.remove(hilo1);
+  if(hilo2) scene.remove(hilo2);
+
+  // Crear hilos nuevos
+  hilo1 = crearHilo(
+    new THREE.Vector3(x,0.2,z),
+    new THREE.Vector3(2,0.3,0)
+  );
+
+  hilo2 = crearHilo(
+    new THREE.Vector3(2,0.3,0),
+    new THREE.Vector3(2,-1.2,0)
+  );
+
+  scene.add(hilo1);
+  scene.add(hilo2);
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
