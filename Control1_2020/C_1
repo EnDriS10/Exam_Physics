@@ -1,0 +1,98 @@
+clear;clc;
+
+%% Datos
+
+a=3;
+b=4E-2;
+c=0.5;
+d=1E-3;
+
+I= eye(2,2);
+A= [a 0 ; 0 -c];
+B= [0 -b; d 0];
+
+x1= 700; % presas
+y1= 80; %casadores
+
+N=4E4; h=5E-4;
+tN= 20;
+
+
+%%
+
+t = linspace(0,tN,N);
+
+q=zeros(2,length(t));
+q(:,1) = [x1; y1];
+
+%% 1.A
+
+  for i=1:length(t)-1
+     q(:,i+1)= (I + h*A)*q(:,i) + h*(B*q(:,i)).*q(:,i);
+  end
+
+  figure(1)
+subplot(2,2,1) ;
+plot(t, q(1,:)) ;
+xlabel('Tiempo (anos)') ;
+ylabel('Presas (Num de Presas)') ;
+title('Poblacion de Presas vs t ') ;
+%axis equal;
+grid on;
+
+subplot(2,2,2) ;
+plot(t, q(2,:)) ;
+xlabel('Tiempo (anos)') ;
+ylabel('Cazadores (Num de Cazadores)') ;
+title('Poblacion de Cazadores vs t ') ;
+%axis equal;
+grid on;
+
+%% 1B
+
+Condicion1 = (q(1,:)<q(1,1)); %el tiempo durante el que la población de presas es menor quesu población inicial
+Condicion2 = [Condicion1 | (q(1,:) > 2*q(1,1))]; %el tiempo durante el que la población de presas es menor que la inical o mayor que el doble de la inicial
+Condicion3 = [Condicion1 & (q(2,:)<q(2,1))]; %el primer instante de tiempo en el queambaspoblacionessonmenoresquesuspoblacionesdepartid
+
+
+T1= (tN/N)*sum(Condicion1);
+T2= (tN/N)*sum(Condicion2);
+
+Count=0;
+T3=0;
+while T3==0
+    T_Condicion3 = t;
+    T_Condicion3(~Condicion3) =0;
+    Count = Count +1;
+    T3 = T_Condicion3(Count) + T3;
+end
+
+ fprintf('El tiempo durante el que la población de presas es menor que su población inicial  %.3f (a)\n', T1) ; % \n es salto de línea
+  fprintf('El tiempo durante el que la población de presas es menor que la inical o mayor que el doble de la inicial  %.3f (a)\n',T2) ; % \n es salto de línea
+   fprintf('El primer instante de tiempo en el que ambas poblaciones son menores que sus poblaciones de partida %.3f (a)\n',T3) ; % \n es salto de línea
+
+%% 1C
+
+mu=zeros(1,length(q));
+   for n=1:length(q)-1
+      mu(n)= (q(2,n+1)-q(2,n))/(h*q(2,n));
+   end
+
+y=q(2,:);
+tn= t(1,1:end-1);
+
+Roj = (mu > 0.01);
+Verd = (mu < -0.01);
+Azul = (mu <= 0.01 & mu >= -0.01);
+
+
+subplot(2,2,3) ;
+plot(t(Roj), y(Roj), 'r*',t(Azul), y(Azul), 'b*', t(Verd), y(Verd), 'g*' ) ;
+xlabel('Tiempo (anos)') ;
+ylabel('Cazadores (Num de Cazadores)') ;
+title('Poblacion de Cazadores vs t ') ;
+%axis equal;
+grid on;
+%leg=legend('r<r_1','r<r_2','r<r_3','r\leqda','foco','Location','southwest') ; 
+leg=legend('mu>0.01','0.01>mu>-0.01','mu<-0.01','r\leqda','foco','Location','northwest') ; 
+%leg=legend('r<r_1','r<r_2','r<r_3','r\leqda','foco','Location','eastoutside') ;
