@@ -1,0 +1,11 @@
+
+%% Generador de num aleatorios
+
+rand: Números reales con dominio de 0 a 1. DP constante.
+randn: Números realescon dominio de –Inf a +Inf. DP gaussiana o normal.
+randi: Números naturales
+
+
+con dominio de 1 a n (n es un parámetro). DP constante
+
+
